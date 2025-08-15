@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
 namespace ChatP2P;
 
 public class Peer
@@ -18,7 +17,6 @@ public class Peer
         {
             _tcpClient = new TcpClient(ipAddress, Convert.ToInt32(port));
             Console.WriteLine($"Connection established");
-
             var receiveTask = RecieveMessage();
             await SendMessage();
             await receiveTask;
@@ -39,9 +37,6 @@ public class Peer
             Console.WriteLine("Listening for incoming connections...");
             _tcpClient = await _tcpListener.AcceptTcpClientAsync();
             Console.WriteLine("connection established.");
-
-            //TODO: add recive and send message logic
-
             var receiveTask = RecieveMessage();
             await SendMessage();
             await receiveTask;
@@ -61,16 +56,24 @@ public class Peer
         {
             var stream = _tcpClient!.GetStream();
             var reader = new StreamReader(stream, Encoding.UTF8);
-            var message = await reader.ReadLineAsync();
-            Console.WriteLine($"Peer message: {message}");
+            while (true)
+            {
+                var message = await reader.ReadLineAsync();
+                if (message == null || message.ToLower() == "exit")
+                {
+                    Console.WriteLine("Disconnected.");
+                    break;
+                }
+                Console.WriteLine($"Peer message: {message}");
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error receiving menssage: " + ex.Message);
+            Console.WriteLine("Error receiving message: " + ex.Message);
         }
         finally
         {
-            //TODO: implement close method
+            Close();
         }
     }
 
@@ -83,20 +86,24 @@ public class Peer
 
     public async Task SendMessage()
     {
-        try
+         try
         {
             var stream = _tcpClient!.GetStream();
             var writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
-            var message = "Holiwis este es mi mensaje";
-            await writer.WriteLineAsync(message);
+            while (true)
+            {
+                var message = Console.ReadLine();
+                if (message == null || message.ToLower() == "exit")
+                {
+                    await writer.WriteLineAsync("exit");
+                    break;
+                }
+                await writer.WriteLineAsync(message);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error sending message: " + ex.Message);
-        }
-        finally
-        {
-            Close();
         }
     }
 }
