@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PokemoApi.Infrastructure.Entities;
+using PokemonApi.Infrastructure.Entities;
 
 namespace PokemonApi.Infrastructure;
 
@@ -10,8 +10,7 @@ public class RelationalDbContext : DbContext
     {
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)//Nos va a permitir modificar nuestra tabla, su tamaño, especificaciones, etc
-    //Va a sobreescribir lo que se hizo en la clase padre, solo pueden acceder los hijos
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
@@ -24,6 +23,7 @@ public class RelationalDbContext : DbContext
             entity.Property(e => e.Attack).IsRequired();
             entity.Property(e => e.Defense).IsRequired();
             entity.Property(e => e.Speed).IsRequired();
+            entity.Property(e => e.Stamina).IsRequired();
 
         });
     }
