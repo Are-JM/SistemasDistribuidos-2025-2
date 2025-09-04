@@ -1,0 +1,6 @@
+@CancionesApi_HostAddress = http://localhost:5194
+
+GET {{CancionesApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
