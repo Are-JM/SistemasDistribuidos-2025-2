@@ -2,6 +2,7 @@ using System.ServiceModel;
 using CancionesApi.Dtos;
 using CancionesApi.Infrastructure;
 using CancionesApi.Mappers;
+using CancionesApi.Models;
 using CancionesApi.Repositories;
 using CancionesApi.Validators;
 
@@ -34,5 +35,22 @@ public class CancionesService : ICancionesService
     {
         var cancion = await _cancionRepository.GetByTitleAndArtistAsync(title, artist, cancellationToken);
         return cancion != null;
+    }
+
+    public async Task<CancionResponseDto> GetCancionById(Guid id, CancellationToken cancellationToken)
+    {
+        var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
+        return CancionExists(cancion) ? cancion.ToResponseDto() : throw new FaultException("Song doesn't exist");
+    }
+
+    private static bool CancionExists(Cancion? cancion)
+    {
+        return cancion is not null;
+    }
+
+    public async Task<DeleteCancionResponseDto> DeleteCancionAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
+        return new DeleteCancionResponseDto { Success = true };
     }
 }

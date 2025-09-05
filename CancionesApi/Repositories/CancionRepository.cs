@@ -30,4 +30,16 @@ public class CancionRepository : ICancionRepository
         return cancion.ToModel();
     }
 
+    public async Task<Cancion> GetCancionByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var cancion = await _context.Canciones.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        return cancion.ToModel();
+    }
+
+    public async Task DeleteCancionAsync(Cancion cancion, CancellationToken cancellationToken)
+    {
+        _context.Canciones.Remove(cancion.ToEntity());
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
 }

@@ -8,6 +8,11 @@ namespace CancionesApi.Services;
 public interface ICancionesService
 {
     [OperationContract]
-
     Task<CancionResponseDto> CreateCancion(CreateCancionDto cancion, CancellationToken cancellationToken);
+
+    [OperationContract]
+    Task<CancionResponseDto> GetCancionById(Guid Id, CancellationToken cancellationToken);
+
+    [OperationContract]
+    Task<DeleteCancionResponseDto> DeleteCancionAsync(Guid Id, CancellationToken cancellationToken);
 }
