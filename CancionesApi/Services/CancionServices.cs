@@ -1,0 +1,56 @@
+using System.ServiceModel;
+using CancionesApi.Dtos;
+using CancionesApi.Infrastructure;
+using CancionesApi.Mappers;
+using CancionesApi.Models;
+using CancionesApi.Repositories;
+using CancionesApi.Validators;
+
+namespace CancionesApi.Services;
+
+public class CancionesService : ICancionesService
+{
+    private readonly ICancionRepository _cancionRepository;
+
+    public CancionesService(ICancionRepository cancionRepository)
+    {
+        _cancionRepository = cancionRepository;
+    }
+
+    public async Task<CancionResponseDto> CreateCancion(CreateCancionDto cancionRequest, CancellationToken cancellationToken)
+    {
+        cancionRequest.ValidateTitle().ValidateArtist().ValidateAlbum().ValidateGenre();
+
+        if (await CancionAlreadyExist(cancionRequest.Title, cancionRequest.Artist, cancellationToken))
+        {
+            throw new FaultException("Song already exists");
+        }
+
+        var cancion = await _cancionRepository.CreateCancionAsync(cancionRequest.ToModel(), cancellationToken);
+        return cancion.ToResponseDto();
+
+    }
+
+    private async Task<bool> CancionAlreadyExist(string title, string artist, CancellationToken cancellationToken)
+    {
+        var cancion = await _cancionRepository.GetByTitleAndArtistAsync(title, artist, cancellationToken);
+        return cancion != null;
+    }
+
+    public async Task<CancionResponseDto> GetCancionById(Guid id, CancellationToken cancellationToken)
+    {
+        var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
+        return CancionExists(cancion) ? cancion.ToResponseDto() : throw new FaultException("Song doesn't exist");
+    }
+
+    private static bool CancionExists(Cancion? cancion)
+    {
+        return cancion is not null;
+    }
+
+    public async Task<DeleteCancionResponseDto> DeleteCancionAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
+        return new DeleteCancionResponseDto { Success = true };
+    }
+}
