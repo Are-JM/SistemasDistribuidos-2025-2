@@ -34,7 +34,7 @@ public class CancionesService : ICancionesService
     private async Task<bool> CancionAlreadyExist(string title, string artist, CancellationToken cancellationToken)
     {
         var cancion = await _cancionRepository.GetByTitleAndArtistAsync(title, artist, cancellationToken);
-        return cancion != null;
+        return CancionExists(cancion);
     }
 
     public async Task<CancionResponseDto> GetCancionById(Guid id, CancellationToken cancellationToken)
@@ -52,5 +52,50 @@ public class CancionesService : ICancionesService
     {
         var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
         return new DeleteCancionResponseDto { Success = true };
+    }
+
+    public async Task<IList<CancionResponseDto>> GetSongsByArtist(string artist, CancellationToken cancellationToken)
+    {
+        var songs = await _cancionRepository.GetSongsByArtist(artist, cancellationToken);
+        return songs.ToResponseDto();
+    }
+
+    public async Task<CancionResponseDto> UpdateSong(UpdateSongDto songToUpdate, CancellationToken cancellationToken)
+    {
+        var song = await _cancionRepository.GetCancionByIdAsync(songToUpdate.Id, cancellationToken);
+        if (!CancionExists(song))
+        {
+            throw new FaultException(reason: "Song not found");
+        }
+
+        if (!await IsSongAllowedToBeUpdated(songToUpdate, cancellationToken))
+        {
+            throw new FaultException("Another song by the same title and artist already exists");
+        }
+
+        song.Title = songToUpdate.Title;
+        song.Artist = songToUpdate.Artist;
+        song.Album = songToUpdate.Album;
+        song.Genre = songToUpdate.Genre;
+
+        await _cancionRepository.UpdateSongAsync(song, cancellationToken);
+        return song.ToResponseDto();
+    }
+
+    private async Task<bool> IsSongAllowedToBeUpdated(UpdateSongDto songToUpdate, CancellationToken cancellationToken)
+    {
+        var duplicatedSong = await _cancionRepository.GetByTitleAndArtistAsync(songToUpdate.Title, songToUpdate.Artist, cancellationToken);
+
+        if (duplicatedSong is null)
+        {
+            return true;
+        }
+
+        if (duplicatedSong.Id == songToUpdate.Id)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

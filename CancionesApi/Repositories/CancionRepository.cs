@@ -42,4 +42,16 @@ public class CancionRepository : ICancionRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Cancion>> GetSongsByArtist(string artist, CancellationToken cancellationToken)
+    {
+        var songs = await _context.Canciones.AsNoTracking().Where(s => s.Artist.Contains(artist)).ToListAsync(cancellationToken);
+        return songs.ToModel();
+    }
+
+    public async Task UpdateSongAsync(Cancion song, CancellationToken cancellationToken)
+    {
+        _context.Canciones.Update(song.ToEntity());
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
 }
