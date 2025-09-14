@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
+using System.ComponentModel.DataAnnotations;
+using Org.BouncyCastle.Utilities;
 
-namespace PokemoApi.Infrastructure.Entities;
+namespace PokemonApi.Infrastructure.Entities;
 
 public class PokemonEntity
 {
