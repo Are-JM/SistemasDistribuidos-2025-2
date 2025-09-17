@@ -47,3 +47,10 @@ Para crear el contenedor de la api
 Para probar la api en postman usar el siguiente url
 
 `http://localhost:8080/ws/countries.wsdl`
+
+
+-Notas
+
+El id de los registros se autogenera empezando en 1 y sigue de forma incremental (1,2,3...)
+
+Las validaciones agregadas fueron que ningun campo pueda ser vacío y que el numero de population siempre sea un numero positivo
