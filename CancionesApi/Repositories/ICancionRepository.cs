@@ -10,5 +10,9 @@ public interface ICancionRepository
 
     Task<Cancion> GetCancionByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task DeleteCancionAsync(Cancion cancion,CancellationToken cancellationToken);
+    Task DeleteCancionAsync(Cancion cancion, CancellationToken cancellationToken);
+
+    Task UpdateSongAsync(Cancion song, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Cancion>> GetSongsByArtist(string artist, CancellationToken cancellationToken);
 }

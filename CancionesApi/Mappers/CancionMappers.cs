@@ -67,4 +67,14 @@ public static class CancionMapper
             Year = cancion.Year
         };
     }
+
+    public static IList<CancionResponseDto> ToResponseDto(this IReadOnlyList<Cancion> songs)
+    {
+        return songs.Select(s => s.ToResponseDto()).ToList();
+    }
+
+    public static IReadOnlyList<Cancion> ToModel(this IReadOnlyList<CancionEntity> songs)
+    {
+        return songs.Select(s => s.ToModel()).ToList();
+    }
 }
