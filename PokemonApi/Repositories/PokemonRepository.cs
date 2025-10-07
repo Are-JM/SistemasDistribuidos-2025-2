@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PokemonApi.Infrastructure;
 using PokemonApi.Models;
 using PokemonApi.Mappers;
+using PokemonApi.Dtos;
 
 namespace PokemonApi.Repositories;
 
@@ -54,5 +55,46 @@ public class PokemonRepository : IPokemonRepository
         await _context.SaveChangesAsync(cancellationToken);
 
         return pokemonToCreate.ToModel();
+    }
+
+    public async Task<PagedResponseDto> GetPokemonsAsync(QueryParameters queryParameters, CancellationToken cancellationToken)
+    {
+        IQueryable<Infrastructure.Entities.PokemonEntity> query = _context.Pokemons.AsNoTracking();
+        if (!string.IsNullOrEmpty(queryParameters.Type))
+        {
+            query = query.Where(p => p.Type.ToLower() == queryParameters.Type.ToLower());
+        }
+
+        if (!string.IsNullOrEmpty(queryParameters.Name))
+        {
+            query = query.Where(p => p.Name.ToLower().Contains(queryParameters.Name.ToLower()));
+        }
+
+        var orderByField = queryParameters.OrderBy.ToLower();
+        var isAscending = queryParameters.OrderDirection.ToLower() == "asc";
+
+        query = orderByField switch
+        {
+            "name" => isAscending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+            "level" => isAscending ? query.OrderBy(p => p.Level) : query.OrderByDescending(p => p.Level),
+            "attack" => isAscending ? query.OrderBy(p => p.Attack) : query.OrderByDescending(p => p.Attack),
+            "defense" => isAscending ? query.OrderBy(p => p.Defense) : query.OrderByDescending(p => p.Defense),
+            _ => isAscending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name)
+        };
+
+        var totalPokemons = await query.CountAsync(cancellationToken);
+
+        var pagination = await query.Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize).Take(queryParameters.PageSize).ToListAsync(cancellationToken);
+
+        var pokemons = pagination.ToModel().ToResponseDto().ToList();
+
+        return new PagedResponseDto
+        {
+            TotalRecords = totalPokemons,
+            PageNumber = queryParameters.PageNumber,
+            PageSize = queryParameters.PageSize,
+            TotalPages = (int)Math.Ceiling(totalPokemons / (double)queryParameters.PageSize),
+            Data = pokemons.ToList()
+        };
     }
 }

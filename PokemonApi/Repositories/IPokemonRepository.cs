@@ -1,4 +1,5 @@
 using PokemonApi.Models;
+using PokemonApi.Dtos;
 
 namespace PokemonApi.Repositories;
 
@@ -12,4 +13,6 @@ public interface IPokemonRepository
     Task DeletePokemonAsync(Pokemon pokemon, CancellationToken cancellationToken);
 
     Task UpdatePokemonAsync(Pokemon pokemon, CancellationToken cancellationToken);
+
+    Task<PagedResponseDto> GetPokemonsAsync(QueryParameters queryParameters, CancellationToken cancellationToken);
 }
