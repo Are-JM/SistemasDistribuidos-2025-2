@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using PokedexApi.Dtos;
 using PokedexApi.Services;
 using PokedexApi.Mappers;
-using PokemonApi.Dtos;
 using PokedexApi.Exceptions;
 
 namespace PokedexApi.Controllers;
@@ -33,7 +32,7 @@ public class PokemonsController : ControllerBase
     //400 BAD REQUEST
     //508 Internal Server Error
     [HttpGet]
-    public async Task<ActionResult<IList<PokemonResponse>>> GetPokemonsAsync([FromQuery] string name, [FromQuery] string type,
+    public async Task<ActionResult<PaginatedResponse>> GetPokemonsAsync([FromQuery] string name, [FromQuery] string type,
     [FromQuery] int pageSize, [FromQuery] int pageNumber, [FromQuery] string orderBy, [FromQuery] string orderDirection, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(type))
@@ -41,7 +40,7 @@ public class PokemonsController : ControllerBase
             return BadRequest(new { Message = "Type query parameter is required" });
         }
         var result = await _pokemonService.GetPokemonsAsync(name, type,pageSize,pageNumber,orderBy,orderDirection, cancellationToken);
-        return Ok(result);
+        return Ok(result.ToPagedResponse());
     }
 
     [HttpPost]
@@ -49,7 +48,7 @@ public class PokemonsController : ControllerBase
     {
         try
         {
-            if (!IsValidAttack(createPokemon))
+            if (!IsValidAttack(createPokemon.Stats.Attack))
             {
                 return BadRequest(new { Message = "Attack doesn't have a valid value" });
             }
@@ -80,10 +79,52 @@ public class PokemonsController : ControllerBase
         }
 
         return NoContent();
-    }
+    }
 
-    private static bool IsValidAttack(CreatePokemonRequest createPokemon)
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdatePokemonAsync(Guid id, [FromBody] UpdatePokemonRequest pokemon, CancellationToken cancellationToken)
     {
-        return createPokemon.Stats.Attack > 0;
+
+        try {
+            if (!IsValidAttack(pokemon.Stats.Attack)) {
+                return BadRequest(new { Message = "Invalid attack value" });
+            }
+            await _pokemonService.UpdatePokemonAsync(pokemon.ToModel(id), cancellationToken);
+            return NoContent();
+        }
+        catch (PokemonNotFoundException)
+        {
+            return NotFound();
+        } catch (PokemonAlreadyExistsException ex)
+        {
+            return Conflict(new { Message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<PokemonResponse>> PatchPokemonAsync(Guid id, [FromBody] PatchPokemonRequest pokemonRequest, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (pokemonRequest.Attack.HasValue && !IsValidAttack(pokemonRequest.Attack.Value)) {
+                return BadRequest(new{Message = "Invalid attack value"}); //400
+            }
+
+            var pokemon = await _pokemonService.PatchPokemonAsync(id, pokemonRequest.Name, pokemonRequest.Type, pokemonRequest.Attack, pokemonRequest.Defense, pokemonRequest.Speed, cancellationToken);
+            return Ok(pokemon.ToResponse()); // 204
+        }
+        catch (PokemonNotFoundException)
+        {
+            return NotFound(); // 404
+        }
+        catch (PokemonAlreadyExistsException ex)
+        {
+            return Conflict(new {Message = ex.Message}); // 409
+        }
+    }
+
+    private static bool IsValidAttack(int attack)
+    {
+        return attack > 0;
     }
 }

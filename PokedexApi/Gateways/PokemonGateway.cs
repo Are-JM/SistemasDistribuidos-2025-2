@@ -19,6 +19,22 @@ public class PokemonGateway : IPokemonGateway
         _logger = logger;
     }
 
+    public async Task UpdatePokemonAsync(Pokemon pokemon, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _pokemonContract.UpdatePokemon(pokemon.ToUpdateRequest(), cancellationToken);
+        }
+        catch (FaultException ex) when (ex.Message == "Pokemon not found")
+        {
+            throw new PokemonNotFoundException(pokemon.Id);
+        }
+        catch (FaultException ex) when (ex.Message == "Another pokemon with the same name already exists")
+        {
+            throw new PokemonAlreadyExistsException(pokemon.Name);
+        }
+    }
+
     public async Task<Pokemon> GetPokemonByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -47,7 +63,6 @@ public class PokemonGateway : IPokemonGateway
 
     public async Task<IList<Pokemon>> GetPokemonsByNameAsync(string name, CancellationToken cancellationToken)
     {
-        _logger.LogInformation(":()");
         var pokemons = await _pokemonContract.GetPokemonsByName(name, cancellationToken);
         return pokemons.ToModel();
     }
@@ -66,6 +81,25 @@ public class PokemonGateway : IPokemonGateway
             _logger.LogError(ex, "Something wrong in create pokemon soap api");
             throw new Exception("Pokemon Already Exists");
         }
+    }
+
+    public async Task<PagedResult<Pokemon>> GetPokemonsAsync(string name, string type, int pageSize, int pageNumber, string orderBy, string orderDirection, CancellationToken cancellationToken)
+    {
+
+        var queryParameters = new Infrastructure.Soap.Contracts.QueryParameters
+        {
+            Name = name,
+            Type = type,
+            PageSize = pageSize,
+            PageNumber = pageNumber,
+            OrderBy = orderBy,
+            OrderDirection = orderDirection
+        };
+
+        var result = await _pokemonContract.GetPokemons(queryParameters, cancellationToken);
+
+        return result.ToPagedResult();
+
     }
 
 }

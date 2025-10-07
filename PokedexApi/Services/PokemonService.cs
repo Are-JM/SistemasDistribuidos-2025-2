@@ -1,8 +1,6 @@
 using PokedexApi.Gateways;
 using PokedexApi.Models;
 using PokedexApi.Exceptions;
-using PokedexApi.Dtos;
-using System.Linq.Dynamic.Core;
 
 namespace PokedexApi.Services;
 
@@ -14,34 +12,41 @@ public class PokemonService : IPokemonService
     {
         _pokemonGateway = pokemonGateway;
     }
+
+    public async Task<Pokemon> PatchPokemonAsync(Guid id, string? name, string? type, int? attack, int? speed, int? defense, CancellationToken cancellationToken)
+    {
+        var pokemon = await _pokemonGateway.GetPokemonByIdAsync(id, cancellationToken);
+        if (pokemon is null)
+        {
+            throw new PokemonNotFoundException(id);
+        }
+
+        pokemon.Name = name ?? pokemon.Name;
+        pokemon.Type = type ?? pokemon.Type;
+        pokemon.stats.Attack = attack ?? pokemon.stats.Attack;
+        pokemon.stats.Speed = speed ?? pokemon.stats.Speed;
+        pokemon.stats.Defense = defense ?? pokemon.stats.Defense;
+
+        await _pokemonGateway.UpdatePokemonAsync(pokemon, cancellationToken);
+        return pokemon;
+    }
+    public async Task UpdatePokemonAsync(Pokemon pokemon, CancellationToken cancellationToken)
+    {
+        await _pokemonGateway.UpdatePokemonAsync(pokemon, cancellationToken);
+    }
     public async Task<Pokemon> GetPokemonByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _pokemonGateway.GetPokemonByIdAsync(id, cancellationToken);
     }
-
-    public async Task<PaginatedResponse<PokemonResponse>> GetPokemonsAsync(string name, string type, int pageSize, int pageNumber, string orderBy, string orderDirection, CancellationToken cancellationToken)
+    
+    /*public async Task<Pokemon> GetPokemonByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var pokemons = await _pokemonGateway.GetPokemonsByNameAsync(name, cancellationToken);
-        var filteredpokemons = pokemons.Where(s => s.Type.ToLower().Contains(type.ToLower())).AsQueryable();
-        filteredpokemons = filteredpokemons.OrderBy($"{orderBy} {orderDirection}");
+        return await _pokemonGateway.GetPokemonByIdAsync(id, cancellationToken);
+    }*/
 
-        var pagedList = filteredpokemons.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        var totalRecords = filteredpokemons.Count();
-        var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
-
-        return new PaginatedResponse<PokemonResponse>
-        {
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalRecords = totalRecords,
-            TotalPages = totalPages,
-            Data = pagedList.Select(p => new PokemonResponse
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Type = p.Type
-                }).ToList()
-        };
+    public async Task<PagedResult<Pokemon>> GetPokemonsAsync(string name, string type, int pageSize, int pageNumber, string orderBy, string orderDirection, CancellationToken cancellationToken)
+    {
+        return await _pokemonGateway.GetPokemonsAsync(name, type, pageSize, pageNumber, orderBy, orderDirection, cancellationToken);
     }
     public async Task<Pokemon> CreatePokemonAsync(Pokemon pokemon, CancellationToken cancellationToken)
     {

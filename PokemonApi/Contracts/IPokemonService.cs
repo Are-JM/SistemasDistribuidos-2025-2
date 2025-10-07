@@ -22,4 +22,7 @@ public interface IPokemonService
 
     [OperationContract]
     Task<DeletePokemonResponseDto> DeletePokemonAsync(Guid id, CancellationToken cancellationToken);
+
+    [OperationContract]
+    Task<PagedResponseDto> GetPokemons( QueryParameters queryParameters, CancellationToken cancellationToken);
 }

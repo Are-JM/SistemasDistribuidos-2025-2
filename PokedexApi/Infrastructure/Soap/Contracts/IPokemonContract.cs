@@ -3,7 +3,8 @@ using PokedexApi.Dtos;
 using PokedexApi.Models;
 
 namespace PokedexApi.Infrastructure.Soap.Contracts;
-[ServiceContract (Name = "PokemonService", Namespace = "http://pokemon-api/pokemon-service")]
+
+[ServiceContract(Name = "PokemonService", Namespace = "http://pokemon-api/pokemon-service")]
 public interface IPokemonContract
 {
     [OperationContract]
@@ -20,4 +21,7 @@ public interface IPokemonContract
 
     [OperationContract]
     Task<DeletePokemonResponseDto> DeletePokemonAsync(Guid id, CancellationToken cancellationToken);
+    
+    [OperationContract]
+    Task<PagedResponseDto> GetPokemons( QueryParameters queryParameters, CancellationToken cancellationToken);
 }
