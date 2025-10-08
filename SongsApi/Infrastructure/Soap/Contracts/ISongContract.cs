@@ -1,11 +1,10 @@
 using System.ServiceModel;
-using CancionesApi.Dtos;
 
-namespace CancionesApi.Services;
+namespace SongsApi.Infrastructure.Soap.Contracts;
 
 [ServiceContract(Name = "CancionesService", Namespace = "http://canciones-api/canciones-service")]
 
-public interface ICancionesService
+public interface ISongContract
 {
     [OperationContract]
     Task<CancionResponseDto> CreateCancion(CreateCancionDto cancion, CancellationToken cancellationToken);
@@ -22,6 +21,7 @@ public interface ICancionesService
     [OperationContract]
     Task<IList<CancionResponseDto>> GetSongsByArtist(string Artist, CancellationToken cancellationToken);
 
-        [OperationContract]
-    Task<PagedResponseDto> GetSongs( QueryParameters queryParameters, CancellationToken cancellationToken);
+    [OperationContract]
+    Task<PagedResponseDto> GetSongs(QueryParameters queryParameters, CancellationToken cancellationToken);
+
 }
