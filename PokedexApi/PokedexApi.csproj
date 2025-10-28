@@ -10,8 +10,7 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="SoapCore" Version="1.1.0.49" />
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.7" />
-    <PackageReference Include="X.PagedList" Version="10.5.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
   </ItemGroup>
 
 </Project>
