@@ -1,0 +1,32 @@
+services:
+  singer-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8080"
+    environment:
+      - ASPNETCORE_ENVIROMENT=Development
+      - MongoDB__ConnectionString=mongodb://admin:password@mongodb:27017
+    depends_on:
+      - mongodb
+    networks:
+      - singers-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodb-data:/data/MongoDB__ConnectionString
+    networks:
+      - singers-network
+
+networks:
+  singers-network:
+    driver: bridge
+volumes:
+  mongodb-data:
