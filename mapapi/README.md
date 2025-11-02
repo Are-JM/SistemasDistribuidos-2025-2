@@ -6,6 +6,8 @@ Esta es una api rest que desarrolle utilizando spring boot y java, lo que realiz
 
 ## Instrucciones de la api
 
+Se deber realizar los comandos mvn clean, mvn compile y mvn clean package -DskipTests para asegurarse de que las clases generadas del soap api se creen correctamente, habiendo eliminado primero la carpeta target.
+
 Esta version implementa solo los endpoints GetById y CreateCountry, ya que eran los solicitados el parcial anterior
 No pude crear exitosamente el compose para este proyecto, por lo que fue probado de manera local.
 
