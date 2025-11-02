@@ -1,0 +1,1 @@
+insert into country (id, name, capital, population, currency) values (1, 'Mexico', 'CapitalA', 1000000, 'MXN');
