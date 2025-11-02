@@ -6,7 +6,6 @@ using CancionesApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSoapCore();
-//builder.Services.AddSingleton<ICancionesService, CancionesService>();
 builder.Services.AddScoped<ICancionesService, CancionesService>();
 builder.Services.AddScoped<ICancionRepository, CancionRepository>();
 builder.Services.AddDbContext<RelationalDbContext>(options =>

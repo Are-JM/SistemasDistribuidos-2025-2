@@ -1,4 +1,5 @@
 using CancionesApi.Models;
+using CancionesApi.Dtos;
 
 namespace CancionesApi.Repositories;
 
@@ -15,4 +16,6 @@ public interface ICancionRepository
     Task UpdateSongAsync(Cancion song, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<Cancion>> GetSongsByArtist(string artist, CancellationToken cancellationToken);
+
+    Task<PagedResponseDto> GetSongsAsync(QueryParameters queryParameters, CancellationToken cancellationToken);
 }
