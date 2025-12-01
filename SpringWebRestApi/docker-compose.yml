@@ -1,0 +1,119 @@
+services:
+  mysql-db:
+    image: mysql:8.4
+    container_name: mysql-container-db
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: myrootpassword
+      MYSQL_DATABASE: countries_db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pmyrootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    ports:
+      - "3316:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - final-project-network 
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - final-project-network
+
+  spring-app:
+    build:
+      context: ../SpringWebSOAP-1
+      dockerfile: Dockerfile
+    container_name: spring-soap-container
+    ports:
+      - "8082:8080"
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/countries_db?autoReconnect=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: myrootpassword
+    networks:
+      - final-project-network
+
+  cartographer-api:
+    build:
+      context: ../CartographerApi
+      dockerfile: Dockerfile
+    container_name: cartographer-api-container
+    ports:
+      - "50051:50051"
+    environment:
+      - MONGO_URI=mongodb://admin:password@mongodb:27017
+      - DB_NAME=cartographers_db   
+    depends_on:
+      - mongodb
+    networks:
+      - final-project-network
+
+  spring-rest-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spring-rest-container
+    ports:
+      - "8083:8080"
+    depends_on:
+      - redis
+      - spring-app
+      - cartographer-api
+    environment:
+      SPRING_DATA_REDIS_URL: redis://redis:6379
+    networks:
+      - final-project-network
+
+  redis:
+    image: redis:6-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379" 
+    volumes:
+      - redis-data:/data
+    networks:
+      - final-project-network
+
+  hydra:
+    image: oryd/hydra:latest
+    ports:
+      - "4444:4444" # Public port
+      - "4445:4445" # Admin port
+      - "5555:5555" # Port for hydra token user
+    command:
+      serve all --dev
+    environment:
+      - URLS_SELF_ISSUER=http://127.0.0.1:4444
+      - DSN=memory
+      - SECRETS_SYSTEM=youReallyNeedToChangeThis
+    restart: unless-stopped
+    networks:
+      - final-project-network
+
+volumes:
+  mysql-data:
+  redis-data:
+    driver: local
+  mongo-data:
+
+networks:
+  final-project-network:
+    name: final-project-network
+    driver: bridge

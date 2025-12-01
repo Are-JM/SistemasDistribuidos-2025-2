@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package cartographerspb;
+import "google/protobuf/timestamp.proto";
+
+service CartographerService {
+
+    rpc GetById(CartographerIdRequest) returns (CartographerResponse);
+    rpc CreateCartographers(stream CreateCartographerRequest) returns (CreateCartographerResponse);
+    rpc GetCartographersByName(CartographerNameRequest)returns (stream CartographerResponse);
+}
+
+message CartographerIdRequest {
+  string id = 1;
+}
+
+message CartographerNameRequest {
+  string name = 1;
+}
+
+message CartographerResponse {
+    string id = 1;
+    string name = 2;
+    string company = 3;
+    int32 age = 4;
+    google.protobuf.Timestamp created_at = 5;
+}
+
+message CreateCartographerResponse {
+    int32 success_count = 1;
+    repeated CartographerResponse cartographers = 2;
+}
+
+message CreateCartographerRequest {
+    string name = 1;
+    string company = 2;
+    int32 age = 3;
+}
