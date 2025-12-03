@@ -51,6 +51,11 @@ public class CancionesService : ICancionesService
     public async Task<DeleteCancionResponseDto> DeleteCancionAsync(Guid id, CancellationToken cancellationToken)
     {
         var cancion = await _cancionRepository.GetCancionByIdAsync(id, cancellationToken);
+        if (!CancionExists(cancion))
+        {
+            throw new FaultException(reason: "Song not found");
+        }
+        await _cancionRepository.DeleteCancionAsync(cancion, cancellationToken);
         return new DeleteCancionResponseDto { Success = true };
     }
 
@@ -97,5 +102,10 @@ public class CancionesService : ICancionesService
         }
 
         return false;
+    }
+
+    public async Task<PagedResponseDto> GetSongs(QueryParameters queryParameters, CancellationToken cancellationToken)
+    {
+        return await _cancionRepository.GetSongsAsync(queryParameters, cancellationToken);
     }
 }
